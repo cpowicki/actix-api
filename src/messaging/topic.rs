@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use super::{
     api::Message,
@@ -15,15 +15,17 @@ pub enum TopicMutation {
 
 pub struct Topic {
     name: String,
+    db: PathBuf,
     index: usize,
     rx: Receiver<Message>,
     consumers: Vec<ConsumerHandle>,
 }
 
 impl Topic {
-    pub fn new(name: String, rx: Receiver<Message>) -> Self {
+    pub fn new(name: String, db: PathBuf, rx: Receiver<Message>) -> Self {
         Topic {
             name,
+            db,
             index: 0,
             consumers: vec![],
             rx,
@@ -33,7 +35,7 @@ impl Topic {
     pub fn add_consumer(&mut self) {
         let (tx, rx) = mpsc::channel::<Message>(100);
 
-        let handle = Consumer::new(self.consumers.len() as u32, rx).init();
+        let handle = Consumer::new(self.consumers.len() as u32, self.db.clone(), rx).init();
 
         self.consumers.push(ConsumerHandle::new(tx, handle));
     }

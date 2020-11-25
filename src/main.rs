@@ -1,12 +1,15 @@
 use std::path::PathBuf;
 
-use actix_web::{App, HttpResponse, HttpServer, web::Json, Responder, get, post, web::Data};
+use actix_web::{get, post, web::Data, web::Json, App, HttpResponse, HttpServer, Responder};
+use anyhow::{anyhow, Context, Result};
 use rest::api::{CreateTopic, SendMessage};
 use tokio::sync::RwLock;
-use anyhow::{Context, anyhow, Result};
 
 mod messaging;
-use messaging::{api::{Content, Message}, publisher::PublisherService};
+use messaging::{
+    api::{Content, Message},
+    publisher::PublisherService,
+};
 
 mod rest;
 
@@ -17,7 +20,10 @@ async fn get_topics(publisher: Data<RwLock<PublisherService>>) -> impl Responder
 }
 
 #[post("/topic")]
-async fn post_topic(topic: Json<CreateTopic>, publisher: Data<RwLock<PublisherService>>) -> impl Responder {
+async fn post_topic(
+    topic: Json<CreateTopic>,
+    publisher: Data<RwLock<PublisherService>>,
+) -> impl Responder {
     let mut lock = publisher.write().await;
 
     lock.register_topic(topic.into_inner().name);
@@ -25,29 +31,36 @@ async fn post_topic(topic: Json<CreateTopic>, publisher: Data<RwLock<PublisherSe
 }
 
 #[post("/message")]
-async fn post_msg(json: Json<SendMessage>, publisher: Data<RwLock<PublisherService>>) -> impl Responder {
+async fn post_msg(
+    json: Json<SendMessage>,
+    publisher: Data<RwLock<PublisherService>>,
+) -> impl Responder {
     let mut lock = publisher.write().await;
 
     let msg = json.into_inner();
     let data = msg.get_data().as_bytes().to_vec();
     let content = Content::new(data);
 
-    match lock.send_message(msg.get_topic().to_owned(), Message::Write(content)).await {
+    match lock
+        .send_message(msg.get_topic().to_owned(), Message::Write(content))
+        .await
+    {
         Ok(()) => HttpResponse::Accepted(),
-        Err(_) => HttpResponse::InternalServerError()
+        Err(_) => HttpResponse::InternalServerError(),
     }
 }
 
 #[actix_web::main]
 async fn main() -> Result<()> {
-
     let db_dir = create_db().await?;
+    let publisher_service = create_publisher_service(db_dir.clone());
 
     HttpServer::new(move || {
         App::new()
-            .app_data(create_publisher_service())
+            .app_data(publisher_service.clone())
             .service(get_topics)
             .service(post_topic)
+            .service(post_msg)
     })
     .bind("127.0.0.1:8080")?
     .run()
@@ -55,17 +68,18 @@ async fn main() -> Result<()> {
     .context("Actix Web server failed unexpectedly")
 }
 
-fn create_publisher_service() -> Data<RwLock<PublisherService>> {
-    Data::new(RwLock::new(PublisherService::new()))
+fn create_publisher_service(db: PathBuf) -> Data<RwLock<PublisherService>> {
+    Data::new(RwLock::new(PublisherService::new(db)))
 }
 
 async fn create_db() -> Result<PathBuf> {
-    let mut dir  = std::env::current_dir().context("Failed to get current dir")?;
+    let mut dir = std::env::current_dir().context("Failed to get current dir")?;
     dir.push("persistence");
 
-
     if !dir.exists() {
-        tokio::fs::create_dir(dir.clone()).await.context("Failed to create persistence dir")?;
+        tokio::fs::create_dir(dir.clone())
+            .await
+            .context("Failed to create persistence dir")?;
     }
 
     dir.push("data.txt");

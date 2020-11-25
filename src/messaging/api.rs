@@ -1,9 +1,3 @@
-use std::collections::HashMap;
-
-use tokio::{sync::mpsc, sync::mpsc::Receiver, sync::mpsc::Sender, task::JoinHandle};
-
-use anyhow::{anyhow, Context};
-
 #[derive(Debug, Clone)]
 pub struct Content {
     data: Vec<u8>,
@@ -12,6 +6,10 @@ pub struct Content {
 impl Content {
     pub fn new(data: Vec<u8>) -> Self {
         Content { data }
+    }
+
+    pub fn get_data(self) -> Vec<u8> {
+        self.data
     }
 }
 
