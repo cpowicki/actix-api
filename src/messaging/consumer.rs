@@ -3,25 +3,22 @@ use std::{collections::HashMap, path::PathBuf};
 use tokio::{sync::mpsc, sync::mpsc::Receiver, sync::mpsc::Sender, task::JoinHandle};
 
 use super::api::Message;
-use anyhow::Result;
-use anyhow::{anyhow, Context};
+use anyhow::{anyhow, Context, Result};
 use tokio::prelude::*;
 
 pub struct Consumer {
     id: u32,
-    msg_count: u64,
     rx: Receiver<Message>,
     db: PathBuf,
 }
 
 impl Consumer {
     pub fn new(id: u32, db: PathBuf, rx: Receiver<Message>) -> Self {
-        Consumer {
-            id,
-            msg_count: 0,
-            rx,
-            db,
-        }
+        Consumer { id, rx, db }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        self.id
     }
 
     pub fn init(mut self) -> JoinHandle<Consumer> {
@@ -29,8 +26,9 @@ impl Consumer {
             while let Some(message) = self.rx.recv().await {
                 match message {
                     Message::Clear => {
-                        self.msg_count += 1;
-                        println!("recieved clear message");
+                        if let Err(e) = self.clear().await {
+                            println!("Failed to clear file {:?}", e);
+                        }
                     }
                     Message::Write(content) => {
                         if let Err(e) = self.write_data(content.get_data()).await {
@@ -50,7 +48,16 @@ impl Consumer {
             .append(true)
             .open(self.db.clone())
             .await?;
+
         file.write(&data).await?;
+
+        Ok(())
+    }
+
+    async fn clear(&self) -> Result<()> {
+        let mut file = tokio::fs::File::open(self.db.clone()).await?;
+
+        file.write(&[]).await?;
 
         Ok(())
     }
