@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use actix_web::error::Result;
+
 use actix_web::{get, post, web::Data, web::Json, App, HttpResponse, HttpServer, Responder};
 use anyhow::Context;
 use rest::api::{CreateTopic, SendMessage};
