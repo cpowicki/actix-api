@@ -5,14 +5,14 @@ use tokio::{sync::mpsc, sync::mpsc::Receiver, sync::mpsc::Sender, task::JoinHand
 
 use anyhow::Result;
 use anyhow::{anyhow};
-pub struct PublisherService {
+pub struct MessengerService {
     db: PathBuf,
     topics: HashMap<String, Sender<Message>>,
 }
 
-impl PublisherService {
+impl MessengerService {
     pub fn new(db: PathBuf) -> Self {
-        PublisherService {
+        MessengerService {
             db,
             topics: HashMap::new(),
         }

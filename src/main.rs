@@ -8,13 +8,13 @@ use tokio::sync::RwLock;
 mod messaging;
 use messaging::{
     api::{Content, Message},
-    publisher::PublisherService,
+    service::MessengerService,
 };
 
 mod rest;
 
 #[get("/topic")]
-async fn get_topics(publisher: Data<RwLock<PublisherService>>) -> impl Responder {
+async fn get_topics(publisher: Data<RwLock<MessengerService>>) -> impl Responder {
     let lock = publisher.read().await;
     HttpResponse::Ok().json(lock.list_topics())
 }
@@ -22,7 +22,7 @@ async fn get_topics(publisher: Data<RwLock<PublisherService>>) -> impl Responder
 #[post("/topic")]
 async fn post_topic(
     topic: Json<CreateTopic>,
-    publisher: Data<RwLock<PublisherService>>,
+    publisher: Data<RwLock<MessengerService>>,
 ) -> impl Responder {
     let mut lock = publisher.write().await;
 
@@ -33,7 +33,7 @@ async fn post_topic(
 #[post("/message")]
 async fn post_msg(
     json: Json<SendMessage>,
-    publisher: Data<RwLock<PublisherService>>,
+    publisher: Data<RwLock<MessengerService>>,
 ) -> impl Responder {
     let mut lock = publisher.write().await;
 
@@ -68,8 +68,8 @@ async fn main() -> Result<()> {
     .context("Actix Web server failed unexpectedly")
 }
 
-fn create_publisher_service(db: PathBuf) -> Data<RwLock<PublisherService>> {
-    Data::new(RwLock::new(PublisherService::new(db)))
+fn create_publisher_service(db: PathBuf) -> Data<RwLock<MessengerService>> {
+    Data::new(RwLock::new(MessengerService::new(db)))
 }
 
 async fn create_db() -> Result<PathBuf> {
