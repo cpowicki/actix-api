@@ -18,7 +18,7 @@ impl MessengerService {
             topics: HashMap::new(),
         }
     }
-    
+
     // Lists all available topics
     pub fn list_topics(&self) -> Vec<&String> {
         self.topics.keys().collect()
@@ -38,8 +38,11 @@ impl MessengerService {
     // Send message to consumers of a topic
     pub async fn send_message(&mut self, topic: String, msg: Message) -> Result<()> {
         match self.topics.get_mut(&topic) {
-            Some(topic) => topic.send(msg).await.map_err(|_| ErrorInternalServerError(anyhow!("Failed to send message"))),
-            None => Err(ErrorNotFound(anyhow!("No topic found")))
+            Some(topic) => topic
+                .send(msg)
+                .await
+                .map_err(|_| ErrorInternalServerError(anyhow!("Failed to send message"))),
+            None => Err(ErrorNotFound(anyhow!("No topic found"))),
         }
     }
 }

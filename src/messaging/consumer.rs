@@ -1,4 +1,4 @@
-use std::{path::PathBuf};
+use std::path::PathBuf;
 
 use tokio::{sync::mpsc::Receiver, sync::mpsc::Sender, task::JoinHandle};
 

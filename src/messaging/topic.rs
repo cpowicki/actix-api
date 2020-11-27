@@ -1,4 +1,4 @@
-use std::{path::PathBuf};
+use std::path::PathBuf;
 
 use super::{
     api::Message,
@@ -6,8 +6,8 @@ use super::{
 };
 use tokio::{sync::mpsc, sync::mpsc::Receiver, task::JoinHandle};
 
+use anyhow::anyhow;
 use anyhow::Result;
-use anyhow::{anyhow};
 
 pub enum TopicMutation {
     AddConsumer(Consumer),

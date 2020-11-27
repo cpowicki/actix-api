@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
+use actix_web::error::Result;
 use actix_web::{get, post, web::Data, web::Json, App, HttpResponse, HttpServer, Responder};
-use anyhow::{Context, Result};
+use anyhow::Context;
 use rest::api::{CreateTopic, SendMessage};
 use tokio::sync::RwLock;
 
@@ -46,12 +47,12 @@ async fn post_msg(
         .await
     {
         Ok(()) => HttpResponse::Accepted(),
-        Err(_) => HttpResponse::InternalServerError(),
+        Err(e) => e.as_response_error().error_response().into(),
     }
 }
 
 #[actix_web::main]
-async fn main() -> Result<()> {
+async fn main() -> anyhow::Result<()> {
     let db_dir = create_db().await?;
     let publisher_service = create_publisher_service(db_dir.clone());
 
@@ -72,7 +73,7 @@ fn create_publisher_service(db: PathBuf) -> Data<RwLock<MessengerService>> {
     Data::new(RwLock::new(MessengerService::new(db)))
 }
 
-async fn create_db() -> Result<PathBuf> {
+async fn create_db() -> anyhow::Result<PathBuf> {
     let mut dir = std::env::current_dir().context("Failed to get current dir")?;
     dir.push("persistence");
 
