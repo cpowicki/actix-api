@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-
 use actix_web::{get, post, web::Data, web::Json, App, HttpResponse, HttpServer, Responder};
 use anyhow::Context;
 use rest::api::{CreateTopic, SendMessage};
@@ -14,42 +13,6 @@ use messaging::{
 
 mod rest;
 
-#[get("/topic")]
-async fn get_topics(publisher: Data<RwLock<MessengerService>>) -> impl Responder {
-    let lock = publisher.read().await;
-    HttpResponse::Ok().json(lock.list_topics())
-}
-
-#[post("/topic")]
-async fn post_topic(
-    topic: Json<CreateTopic>,
-    publisher: Data<RwLock<MessengerService>>,
-) -> impl Responder {
-    let mut lock = publisher.write().await;
-
-    lock.register_topic(topic.into_inner().name);
-    HttpResponse::Ok()
-}
-
-#[post("/message")]
-async fn post_msg(
-    json: Json<SendMessage>,
-    publisher: Data<RwLock<MessengerService>>,
-) -> impl Responder {
-    let mut lock = publisher.write().await;
-
-    let msg = json.into_inner();
-    let data = msg.get_data().as_bytes().to_vec();
-    let content = Content::new(data);
-
-    match lock
-        .send_message(msg.get_topic().to_owned(), Message::Write(content))
-        .await
-    {
-        Ok(()) => HttpResponse::Accepted(),
-        Err(e) => e.as_response_error().error_response().into(),
-    }
-}
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
@@ -59,9 +22,7 @@ async fn main() -> anyhow::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(publisher_service.clone())
-            .service(get_topics)
-            .service(post_topic)
-            .service(post_msg)
+            .configure(rest::routes::init)
     })
     .bind("127.0.0.1:8080")?
     .run()
