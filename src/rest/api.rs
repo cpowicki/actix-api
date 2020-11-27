@@ -2,7 +2,13 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct CreateTopic {
-    pub name: String,
+    name: String,
+}
+
+impl CreateTopic {
+    pub fn get_name(&self) -> &String {
+        &self.name
+    }
 }
 
 #[derive(Deserialize)]

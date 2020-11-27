@@ -21,7 +21,7 @@ async fn post_topic(
 ) -> impl Responder {
     let mut lock = publisher.write().await;
 
-    lock.register_topic(topic.into_inner().name);
+    lock.register_topic(topic.into_inner().get_name().to_owned());
     HttpResponse::Ok()
 }
 

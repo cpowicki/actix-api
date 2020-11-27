@@ -1,14 +1,13 @@
-use std::path::PathBuf;
-
 use actix_web::{web::Data, App, HttpServer};
+use std::path::PathBuf;
 use anyhow::Context;
-
 use tokio::sync::RwLock;
 
 mod messaging;
+mod rest;
+
 use messaging::service::MessengerService;
 
-mod rest;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
