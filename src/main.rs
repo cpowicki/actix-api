@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use actix_web::{get, post, web::Data, web::Json, App, HttpResponse, HttpServer, Responder};
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use rest::api::{CreateTopic, SendMessage};
 use tokio::sync::RwLock;
 

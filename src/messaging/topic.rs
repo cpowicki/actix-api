@@ -1,13 +1,13 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{path::PathBuf};
 
 use super::{
     api::Message,
     consumer::{Consumer, ConsumerHandle},
 };
-use tokio::{sync::mpsc, sync::mpsc::Receiver, sync::mpsc::Sender, task::JoinHandle};
+use tokio::{sync::mpsc, sync::mpsc::Receiver, task::JoinHandle};
 
 use anyhow::Result;
-use anyhow::{anyhow, Context};
+use anyhow::{anyhow};
 
 pub enum TopicMutation {
     AddConsumer(Consumer),

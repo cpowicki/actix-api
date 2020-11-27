@@ -4,7 +4,7 @@ use super::{api::Message, topic::Topic};
 use tokio::{sync::mpsc, sync::mpsc::Receiver, sync::mpsc::Sender, task::JoinHandle};
 
 use anyhow::Result;
-use anyhow::{anyhow, Context};
+use anyhow::{anyhow};
 pub struct PublisherService {
     db: PathBuf,
     topics: HashMap<String, Sender<Message>>,

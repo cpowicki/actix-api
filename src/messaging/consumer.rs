@@ -1,9 +1,9 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{path::PathBuf};
 
-use tokio::{sync::mpsc, sync::mpsc::Receiver, sync::mpsc::Sender, task::JoinHandle};
+use tokio::{sync::mpsc::Receiver, sync::mpsc::Sender, task::JoinHandle};
 
 use super::api::Message;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use tokio::prelude::*;
 
 pub struct Consumer {
