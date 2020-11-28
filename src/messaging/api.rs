@@ -1,3 +1,7 @@
+use anyhow::Result;
+
+use super::consumer::Consumer;
+
 #[derive(Debug, Clone)]
 pub struct Content {
     data: Vec<u8>,
@@ -19,3 +23,19 @@ pub enum Message {
     Clear,
     Kill,
 }
+
+impl Sendable for Message{}
+
+pub trait Consumable {
+    type Operator;
+    fn consume(o: &mut Self::Operator, msg: &mut Self) -> Result<()>;
+}
+
+impl Consumable for Message {
+    type Operator = Consumer;
+    fn consume(o: &mut Consumer, msg: &mut Self) -> Result<()> {
+        Ok(())
+    }
+}
+
+pub trait Sendable{}

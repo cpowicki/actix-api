@@ -2,27 +2,16 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct CreateTopic {
-    name: String,
-}
-
-impl CreateTopic {
-    pub fn get_name(&self) -> &String {
-        &self.name
-    }
+    pub name: String,
 }
 
 #[derive(Deserialize)]
 pub struct SendMessage {
-    topic: String,
-    data: String,
+    pub topic: String,
+    pub data: String,
 }
 
-impl SendMessage {
-    pub fn get_topic(&self) -> &String {
-        &self.topic
-    }
-
-    pub fn get_data(&self) -> &String {
-        &self.data
-    }
+#[derive(Deserialize)]
+pub struct AddConsumer {
+    pub topic: String
 }

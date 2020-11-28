@@ -54,6 +54,8 @@ impl Consumer {
 
         file.write(&data).await?;
 
+        println!("Debug - Consumer {:?} wrote {:?}", self.id, data);
+
         Ok(())
     }
 

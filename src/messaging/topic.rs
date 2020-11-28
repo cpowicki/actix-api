@@ -1,28 +1,27 @@
 use std::path::PathBuf;
 
-use super::{
-    api::Message,
-    consumer::{Consumer, ConsumerHandle},
-};
+use super::{api::{Message, Sendable}, consumer::{Consumer, ConsumerHandle}};
 use tokio::{sync::mpsc, sync::mpsc::Receiver, task::JoinHandle};
 
 use anyhow::anyhow;
 use anyhow::Result;
 
-pub enum TopicMutation {
+pub enum TopicOperation {
+    SendMessage(Message),
     AddConsumer,
+    KillConsumer(u32)
 }
 
 pub struct Topic {
     name: String,
     db: PathBuf,
     index: usize,
-    rx: Receiver<Message>,
+    rx: Receiver<TopicOperation>,
     consumers: Vec<ConsumerHandle>,
 }
 
 impl Topic {
-    pub fn new(name: String, db: PathBuf, rx: Receiver<Message>) -> Self {
+    pub fn new(name: String, db: PathBuf, rx: Receiver<TopicOperation>) -> Self {
         Topic {
             name,
             db,
@@ -34,7 +33,8 @@ impl Topic {
 
     pub fn add_consumer(&mut self) {
         let (tx, rx) = mpsc::channel::<Message>(100);
-        let handle = Consumer::new(self.consumers.len() as u32, self.db.clone(), rx).init();
+        let id = self.consumers.len() as u32;
+        let handle = Consumer::new(id, self.db.clone(), rx).init();
 
         self.consumers.push(ConsumerHandle::new(tx, handle));
     }
@@ -48,14 +48,20 @@ impl Topic {
 
     pub fn init(mut self) -> JoinHandle<Topic> {
         tokio::spawn(async move {
-            while let Some(message) = self.rx.recv().await {
-                self.index = self.index % (self.consumers.len());
+            while let Some(operation) = self.rx.recv().await {
+                match operation {
+                    TopicOperation::SendMessage(message) => {
+                        self.index = self.index % (self.consumers.len());
 
-                if let Err(e) = self.send(message).await {
-                    println!("Failed to send message {:?}", e);
+                        if let Err(e) = self.send(message).await {
+                            println!("Failed to send message {:?}", e);
+                        }
+
+                        self.index += 1;
+                    }
+                    TopicOperation::AddConsumer => self.add_consumer(),
+                    TopicOperation::KillConsumer(_) => todo!()
                 }
-
-                self.index += 1;
             }
 
             self
