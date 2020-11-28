@@ -10,7 +10,7 @@ use anyhow::anyhow;
 use anyhow::Result;
 
 pub enum TopicMutation {
-    AddConsumer(Consumer),
+    AddConsumer,
 }
 
 pub struct Topic {
@@ -32,15 +32,14 @@ impl Topic {
         }
     }
 
-    pub fn add_consumer(&mut self) {
+    fn add_consumer(&mut self) {
         let (tx, rx) = mpsc::channel::<Message>(100);
-
         let handle = Consumer::new(self.consumers.len() as u32, self.db.clone(), rx).init();
 
         self.consumers.push(ConsumerHandle::new(tx, handle));
     }
 
-    pub async fn send(&mut self, msg: Message) -> Result<()> {
+    async fn send(&mut self, msg: Message) -> Result<()> {
         match self.consumers.get_mut(self.index) {
             Some(consumer) => consumer.send(msg).await,
             None => Err(anyhow!("Failed to send message")),
