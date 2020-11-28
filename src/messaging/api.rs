@@ -33,7 +33,7 @@ pub trait Consumable {
 
 impl Consumable for Message {
     type Operator = Consumer;
-    fn consume(o: &mut Consumer, msg: &mut Self) -> Result<()> {
+    fn consume(_o: &mut Consumer, _msg: &mut Self) -> Result<()> {
         Ok(())
     }
 }

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use super::{
-    api::{Message, Sendable},
+    api::{Message},
     consumer::{Consumer, ConsumerHandle},
 };
 use tokio::{sync::mpsc, sync::mpsc::Receiver, task::JoinHandle};
