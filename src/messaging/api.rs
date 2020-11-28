@@ -13,8 +13,9 @@ impl Content {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Message {
     Write(Content),
     Clear,
+    Kill,
 }

@@ -3,18 +3,19 @@ use std::path::PathBuf;
 use tokio::{sync::mpsc::Receiver, sync::mpsc::Sender, task::JoinHandle};
 
 use super::api::Message;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use tokio::prelude::*;
 
 pub struct Consumer {
     id: u32,
+    msg_count: u32,
     rx: Receiver<Message>,
     db: PathBuf,
 }
 
 impl Consumer {
     pub fn new(id: u32, db: PathBuf, rx: Receiver<Message>) -> Self {
-        Consumer { id, rx, db }
+        Consumer { id, msg_count: 0, rx, db }
     }
 
     pub fn get_id(&self) -> u32 {
@@ -24,6 +25,7 @@ impl Consumer {
     pub fn init(mut self) -> JoinHandle<Consumer> {
         tokio::spawn(async move {
             while let Some(message) = self.rx.recv().await {
+                self.msg_count += 1;
                 match message {
                     Message::Clear => {
                         if let Err(e) = self.clear().await {
@@ -35,6 +37,7 @@ impl Consumer {
                             println!("Failed to write to file {:?}", e);
                         }
                     }
+                    Message::Kill => break,
                 }
             }
 
@@ -78,5 +81,14 @@ impl ConsumerHandle {
             .send(msg)
             .await
             .map_err(|_| anyhow!("Failed to send message to consumer"))
+    }
+
+    pub async fn kill(mut self) -> Result<Consumer> {
+        self.tx
+            .send(Message::Kill)
+            .await
+            .context("Failed to send kill msg")?;
+
+        self.join.await.context("Failed to join consumer")
     }
 }

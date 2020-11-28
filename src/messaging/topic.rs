@@ -32,7 +32,7 @@ impl Topic {
         }
     }
 
-    fn add_consumer(&mut self) {
+    pub fn add_consumer(&mut self) {
         let (tx, rx) = mpsc::channel::<Message>(100);
         let handle = Consumer::new(self.consumers.len() as u32, self.db.clone(), rx).init();
 
