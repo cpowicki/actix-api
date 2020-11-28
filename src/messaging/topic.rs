@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
-use super::{api::{Message, Sendable}, consumer::{Consumer, ConsumerHandle}};
+use super::{
+    api::{Message, Sendable},
+    consumer::{Consumer, ConsumerHandle},
+};
 use tokio::{sync::mpsc, sync::mpsc::Receiver, task::JoinHandle};
 
 use anyhow::anyhow;
@@ -9,7 +12,7 @@ use anyhow::Result;
 pub enum TopicOperation {
     SendMessage(Message),
     AddConsumer,
-    KillConsumer(u32)
+    KillConsumer(u32),
 }
 
 pub struct Topic {
@@ -60,7 +63,7 @@ impl Topic {
                         self.index += 1;
                     }
                     TopicOperation::AddConsumer => self.add_consumer(),
-                    TopicOperation::KillConsumer(_) => todo!()
+                    TopicOperation::KillConsumer(_) => todo!(),
                 }
             }
 

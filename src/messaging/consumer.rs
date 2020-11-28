@@ -15,7 +15,12 @@ pub struct Consumer {
 
 impl Consumer {
     pub fn new(id: u32, db: PathBuf, rx: Receiver<Message>) -> Self {
-        Consumer { id, msg_count: 0, rx, db }
+        Consumer {
+            id,
+            msg_count: 0,
+            rx,
+            db,
+        }
     }
 
     pub fn get_id(&self) -> u32 {

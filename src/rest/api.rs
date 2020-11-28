@@ -13,5 +13,5 @@ pub struct SendMessage {
 
 #[derive(Deserialize)]
 pub struct AddConsumer {
-    pub topic: String
+    pub topic: String,
 }

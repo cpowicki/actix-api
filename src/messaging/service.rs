@@ -1,6 +1,9 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use super::{api::Message, topic::{Topic, TopicOperation}};
+use super::{
+    api::Message,
+    topic::{Topic, TopicOperation},
+};
 use actix_web::error::{ErrorInternalServerError, ErrorNotFound, Result};
 use tokio::sync::mpsc::{channel, Sender};
 
@@ -49,7 +52,10 @@ impl MessengerService {
     // Add a consumer to a topic
     pub async fn add_consumer(&mut self, topic: String) -> Result<()> {
         match self.topics.get_mut(&topic) {
-            Some(sender) => sender.send(TopicOperation::AddConsumer).await.map_err(|_| ErrorInternalServerError(anyhow!("Failed to send message"))),
+            Some(sender) => sender
+                .send(TopicOperation::AddConsumer)
+                .await
+                .map_err(|_| ErrorInternalServerError(anyhow!("Failed to send message"))),
             None => Err(ErrorNotFound(anyhow!("No topic found"))),
         }
     }

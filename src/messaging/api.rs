@@ -24,7 +24,7 @@ pub enum Message {
     Kill,
 }
 
-impl Sendable for Message{}
+impl Sendable for Message {}
 
 pub trait Consumable {
     type Operator;
@@ -38,4 +38,4 @@ impl Consumable for Message {
     }
 }
 
-pub trait Sendable{}
+pub trait Sendable {}
