@@ -38,8 +38,5 @@ async fn create_db() -> anyhow::Result<PathBuf> {
             .context("Failed to create persistence dir")?;
     }
 
-    dir.push("data.txt");
-    tokio::fs::File::create(dir.clone()).await?;
-
     Ok(dir)
 }

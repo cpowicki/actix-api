@@ -1,8 +1,9 @@
 use serde::Deserialize;
 
 #[derive(Deserialize)]
-pub struct CreateTopic {
+pub struct Topic {
     pub name: String,
+    pub consumer_count: usize,
 }
 
 #[derive(Deserialize)]

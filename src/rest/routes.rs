@@ -1,6 +1,10 @@
-use actix_web::{HttpResponse, web::Path, Responder, get, post, web::Data, web::Json, web::ServiceConfig};
+use actix_web::{
+    get, patch, post,
+    web::{Data, Json, Path, ServiceConfig},
+    HttpResponse, Responder,
+};
 
-use super::api::{CreateTopic, SendMessage};
+use super::api::{SendMessage, Topic};
 use tokio::sync::RwLock;
 
 use crate::messaging::{
@@ -16,13 +20,25 @@ async fn get_topics(publisher: Data<RwLock<MessengerService>>) -> impl Responder
 
 #[post("/topic")]
 async fn post_topic(
-    topic: Json<CreateTopic>,
+    topic: Json<Topic>,
     publisher: Data<RwLock<MessengerService>>,
 ) -> impl Responder {
     let mut lock = publisher.write().await;
 
     lock.register_topic(topic.into_inner().name.to_owned());
     HttpResponse::Ok()
+}
+
+#[patch("/topic/{name}/clear")]
+async fn clear_topic(
+    topic: Path<String>,
+    publisher: Data<RwLock<MessengerService>>,
+) -> impl Responder {
+    let mut lock = publisher.write().await;
+    match lock.clear_topic(topic.into_inner()).await {
+        Ok(()) => HttpResponse::Accepted(),
+        Err(e) => e.as_response_error().error_response().into(),
+    }
 }
 
 #[post("/topic/{name}/consumer")]
@@ -61,5 +77,6 @@ pub fn init(cfg: &mut ServiceConfig) {
     cfg.service(get_topics);
     cfg.service(post_topic);
     cfg.service(post_topic_consumer);
+    cfg.service(clear_topic);
     cfg.service(post_msg);
 }

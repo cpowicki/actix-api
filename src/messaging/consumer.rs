@@ -23,8 +23,8 @@ impl Consumer {
         }
     }
 
-    pub fn get_id(&self) -> u32 {
-        self.id
+    pub fn get_msg_count(&self) -> u32 {
+        self.msg_count
     }
 
     pub fn init(mut self) -> JoinHandle<Consumer> {
@@ -34,7 +34,7 @@ impl Consumer {
                 match message {
                     Message::Clear => {
                         if let Err(e) = self.clear().await {
-                            println!("Failed to clear file {:?}", e);
+                            println!("Failed to clear file {}", e);
                         }
                     }
                     Message::Write(content) => {
@@ -65,9 +65,12 @@ impl Consumer {
     }
 
     async fn clear(&self) -> Result<()> {
-        let mut file = tokio::fs::File::open(self.db.clone()).await?;
+        let mut file = tokio::fs::OpenOptions::new()
+            .write(true)
+            .open(self.db.clone())
+            .await?;
 
-        file.write(&[]).await?;
+        file.set_len(0).await?;
 
         Ok(())
     }
