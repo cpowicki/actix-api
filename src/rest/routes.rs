@@ -1,6 +1,6 @@
-use actix_web::{get, post, web::Data, web::Json, web::ServiceConfig, HttpResponse, Responder};
+use actix_web::{HttpResponse, web::Path, Responder, get, post, web::Data, web::Json, web::ServiceConfig};
 
-use super::api::{AddConsumer, CreateTopic, SendMessage};
+use super::api::{CreateTopic, SendMessage};
 use tokio::sync::RwLock;
 
 use crate::messaging::{
@@ -25,13 +25,13 @@ async fn post_topic(
     HttpResponse::Ok()
 }
 
-#[post("/topic-consumer")]
-async fn post_consumer(
-    add_consumer: Json<AddConsumer>,
+#[post("/topic/{name}/consumer")]
+async fn post_topic_consumer(
+    topic: Path<String>,
     publisher: Data<RwLock<MessengerService>>,
 ) -> impl Responder {
     let mut lock = publisher.write().await;
-    match lock.add_consumer(add_consumer.topic.to_owned()).await {
+    match lock.add_consumer(topic.into_inner()).await {
         Ok(()) => HttpResponse::Accepted(),
         Err(e) => e.as_response_error().error_response().into(),
     }
@@ -60,5 +60,6 @@ async fn post_msg(
 pub fn init(cfg: &mut ServiceConfig) {
     cfg.service(get_topics);
     cfg.service(post_topic);
+    cfg.service(post_topic_consumer);
     cfg.service(post_msg);
 }
